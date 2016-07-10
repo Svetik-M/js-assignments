@@ -10,7 +10,7 @@
 
 
 /**
- * Returns the lines sequence of "99 Bottles of Beer" song:
+ * Returns the lines sequence of "99 Bottles of Beer" song: 
  *
  *  '99 bottles of beer on the wall, 99 bottles of beer.'
  *  'Take one down and pass it around, 98 bottles of beer on the wall.'
@@ -25,7 +25,7 @@
  * See the full text at
  * http://99-bottles-of-beer.net/lyrics.html
  *
- * NOTE: Please try to complete this task faster then original song finished:
+ * NOTE: Please try to complete this task faster then original song finished: 
  * https://www.youtube.com/watch?v=Z7bmyjxJuVY   :)
  *
  *
@@ -33,7 +33,16 @@
  *
  */
 function* get99BottlesOfBeer() {
-    throw new Error('Not implemented');
+    for (var i = 99; i > 2; i--) {
+       yield i + ' bottles of beer on the wall, ' + i + ' bottles of beer.';
+       yield 'Take one down and pass it around, ' + (i-1) + ' bottles of beer on the wall.';
+    }
+    yield '2 bottles of beer on the wall, 2 bottles of beer.';
+    yield 'Take one down and pass it around, 1 bottle of beer on the wall.';
+    yield '1 bottle of beer on the wall, 1 bottle of beer.';
+    yield 'Take one down and pass it around, no more bottles of beer on the wall.';
+    yield 'No more bottles of beer on the wall, no more bottles of beer.';
+    yield 'Go to the store and buy some more, 99 bottles of beer on the wall.';
 }
 
 
@@ -47,7 +56,14 @@ function* get99BottlesOfBeer() {
  *
  */
 function* getFibonacciSequence() {
-    throw new Error('Not implemented');
+    var fn1 = 0;
+    var fn2 = 1;
+    while (true) {  
+        yield fn1; 
+        var current = fn1;
+        fn1 += fn2;
+        fn2 = current;
+    }   
 }
 
 
@@ -82,12 +98,22 @@ function* getFibonacciSequence() {
  *
  */
 function* depthTraversalTree(root) {
-    throw new Error('Not implemented');
-}
+    var stack = [root];
+    while (stack.length != 0) {
+        var node = stack.pop();
+        yield node;
+        if (node.children) {
+            var i = node.children.length;
+            while (i) {
+                stack.push(node.children[--i]);
+            }
+        }
+    }
+ }
 
 
 /**
- * Traverses a tree using the breadth-first strategy
+ * Traverses a tree using the breadth-first strategy 
  * See details: https://en.wikipedia.org/wiki/Breadth-first_search
  *
  * Each node have child nodes in node.children array.
@@ -108,13 +134,23 @@ function* depthTraversalTree(root) {
  *
  */
 function* breadthTraversalTree(root) {
-    throw new Error('Not implemented');
+    var stack = [root];
+    var i = 0;
+    while (i < stack.length) {
+        var node = stack[i++];
+        if (node.children) {
+            node.children.map((v) => {
+                stack.push(v);
+            });
+        }
+        yield node;
+    }
 }
 
 
 /**
  * Merges two yield-style sorted sequences into the one sorted sequence.
- * The result sequence consists of sorted items from source iterators.
+ * The result sequence consists of sorted items from source iterators. 
  *
  * @params {Iterable.<number>} source1
  * @params {Iterable.<number>} source2
@@ -124,9 +160,32 @@ function* breadthTraversalTree(root) {
  *   [ 1, 3, 5, ... ], [2, 4, 6, ... ]  => [ 1, 2, 3, 4, 5, 6, ... ]
  *   [ 0 ], [ 2, 4, 6, ... ]  => [ 0, 2, 4, 6, ... ]
  *   [ 1, 3, 5, ... ], [ -1 ] => [ -1, 1, 3, 5, ...]
- */
+ */     
 function* mergeSortedSequences(source1, source2) {
-    throw new Error('Not implemented');
+    var s1 = source1();
+    var s2 = source2();
+    var n1 = s1.next();
+    var n2 = s2.next();
+    do {
+        if (n1.value < n2.value) {
+            yield n1.value;
+            n1 = s1.next();
+        } else {
+            yield n2.value;
+            n2 = s2.next();
+        }
+    } while (n1.value != undefined && n2.value != undefined) 
+    if (n1.value === undefined) {
+        while (n2.value != undefined) {
+            yield n2.value;
+            n2 = s2.next();
+        }
+    } else if (n2.value === undefined) {
+        while (n1.value != undefined) {
+            yield n1.value;
+            n1 = s1.next();
+        }
+    }
 }
 
 

@@ -266,7 +266,7 @@ function reverseInteger(num) {
     var str = num.toString();
     var arr = str.split('');
     arr.reverse();
-    return parseInt(arr.join(''));
+    return +arr.join('');
 }
 
 
@@ -293,7 +293,7 @@ function reverseInteger(num) {
 function isCreditCardNumber(ccn) {
     var str = ccn.toString();
     var arr = str.split('');
-    arr = arr.map(x => parseInt(x));
+    arr = arr.map(x => +x);
     var sum = 0;
     for (let i = arr.length - 2; i >= 0; i = i - 2) {
         var n = arr[i] * 2;
@@ -326,7 +326,7 @@ function getDigitalRoot(num) {
         var str = num.toString();
         var arr = str.split('');
         num = arr.reduce((prev, curr) => {
-            return prev*1 + curr*1;
+            return +prev + +curr;
         });
     }
     return num;
