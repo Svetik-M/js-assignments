@@ -34,7 +34,25 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    var num = {' _ | ||_|': 0,
+               '     |  |': 1,
+               ' _  _||_ ': 2,
+               ' _  _| _|': 3,
+               '   |_|  |': 4,
+               ' _ |_  _|': 5,
+               ' _ |_ |_|': 6,
+               ' _   |  |': 7,
+               ' _ |_||_|': 8,
+               ' _ |_| _|': 9};
+    var lenOneLine = bankAccount.length/3;
+    var arrOfNum = Array.from({length: lenOneLine/3-1});
+    for(let i = 0, n = 0; i < lenOneLine/3-1; i++, n += 3){
+       arrOfNum[i] = bankAccount.substring(n, n+3) + 
+       bankAccount.substring(n+lenOneLine, n+lenOneLine+3) + 
+       bankAccount.substring(n+lenOneLine*2, n+lenOneLine*2+3);
+    }
+    var result = arrOfNum.map(v => num[v]).join('');
+    return parseInt(result);
 }
 
 
@@ -63,7 +81,11 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
+    var reg = new RegExp('.{1,'+columns+'}( |$)', 'g');
+    var res = text.match(reg);
+    for(let i = 0; i < res.length; i++) {
+        yield res[i].trim();
+    }
 }
 
 
@@ -100,7 +122,55 @@ const PokerRank = {
 }
 
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    var allRang = {'A':0, '2':0, '3':0, '4':0, '5':0, '6':0, '7':0, '8':0, '9':0, '10':0, 'J':0, 'Q':0, 'K':0};
+    var order = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    var allSuit = {'♥':0, '♠':0, '♦':0, '♣':0};
+    var rang = hand.map(v => v.length === 3 ? v[0] + v[1] : v[0]);
+    
+    function getHand() {
+        for (let i = 4; i >= 0; i--) {
+            allRang[rang[i]] = allRang[rang[i]] + 1;
+        }
+
+        var quantityRang = Array.from({length: 5});
+        for (let i = 4; i >= 0; i--) {
+            quantityRang[i] = allRang[rang[i]];
+        }
+
+        quantityRang = quantityRang.sort();
+        if (quantityRang[4] === 4) return PokerRank.FourOfKind;
+        if (quantityRang[4] === 3) return quantityRang[1] === 2 ? PokerRank.FullHouse : PokerRank.ThreeOfKind;
+        if (quantityRang[4] === 2) return quantityRang[2] === 2 ? PokerRank.TwoPairs : PokerRank.OnePair;
+        return PokerRank.HighCard;
+    }
+    
+    var checkChain = (function() {
+        var chain = rang.map(v => order.indexOf(v));
+        var sorter = function (a,b) {
+            if (a < b) return -1;
+            if (a > b) return 1;
+            return 0;
+        }
+        chain = chain.sort(sorter);
+        if (chain[0] === 0 && chain[4] === 12) {
+            chain[0] = 13;
+            chain = chain.sort(sorter);
+        }
+        var check = 0;
+        for (let i = 4; i > 0; i--) {
+            if (chain[i]-1 === chain[i-1]) check++;
+        } 
+        return check === 4;
+    })();
+
+    var suit = hand.map(v => v.length === 3 ? v[2] : v[1]);
+        var checkSuit = suit.every((v, i) => v === suit[i+1]|| v === suit[i-1]);
+    
+    if (checkChain) {
+        return checkSuit ? PokerRank.StraightFlush : PokerRank.Straight;
+    } else {
+        return checkSuit ? PokerRank.Flush : getHand();
+    }
 }
 
 
@@ -122,7 +192,7 @@ function getPokerHandRank(hand) {
  *    '|            |\n'+              '|            |\n'+         '+------+\n'+          '+-----+\n'+
  *    '+------+-----+\n'+       =>     '|            |\n'+     ,   '|      |\n'+     ,    '|     |\n'+
  *    '|      |     |\n'+              '|            |\n'+         '|      |\n'+          '|     |\n'+
- *    '|      |     |\n'               '+------------+\n'          '+------+\n'           '+-----+\n'
+ *    '|      |     |\n'+              '+------------+\n'          '+------+\n'           '+-----+\n'
  *    '+------+-----+\n'
  *
  *
@@ -135,8 +205,48 @@ function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
-}
+    var strings = figure.trim().split('\n');
+
+    strings = strings.map((v) => {
+        v = v.trim();
+        if (/^[\+]+$/.test(v)) {
+            v = v.slice(1,v.length);
+            v = v.replace(/\+/g, '++,');
+        };
+        v = v.replace(/ \| /g, ' |,| ');
+        return v.replace(/,$/g, '');
+    });
+
+    var arrayOfStrigs = strings.map((v) => /.+,.+/.test(v) ? v.split(',') : v);
+    var lastIndex = arrayOfStrigs.length-1;
+    
+    while(lastIndex > 0) {
+        lastIndex -= 1;
+        
+        if (typeof(arrayOfStrigs[lastIndex]) === 'string') {
+            let rep = arrayOfStrigs[lastIndex].length -2;
+            let result = '+' + '-'.repeat(rep) + '+' + '\n'; 
+            for (lastIndex; /[\s\|]/.test(arrayOfStrigs[lastIndex]); lastIndex--) {
+                result += '|' + ' '.repeat(rep) + '|' + '\n';
+            }
+            result += '+' + '-'.repeat(rep) + '+' + '\n';
+            yield result;
+
+        } else {    
+            var length = arrayOfStrigs[lastIndex].length;
+            for (length; length > 0; length--) {
+                let rep = arrayOfStrigs[lastIndex][length-1].length -2;
+                let result = '+' + '-'.repeat(rep) + '+' + '\n';
+                for (let i = lastIndex; typeof(arrayOfStrigs[i]) === 'object'; i--) {
+                    if (arrayOfStrigs[i][length-1] !== '++') result +='|' + ' '.repeat(rep) + '|' + '\n';
+                    if (length === 1) lastIndex -= 1;
+                }
+                result += '+' + '-'.repeat(rep) + '+' + '\n';
+                yield result;
+            }
+        }
+    } 
+}    
 
 
 module.exports = {
