@@ -111,7 +111,7 @@ function fromJSON(proto, json) {
 function error(turn1, turn2, name1, name2) {
     if (turn1 > turn2) {
         throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-    } 
+    }
     if (name1 === name2 && name1 === 'element' || name1 === 'id' || name1 === 'pseudoElement') {
         throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector')
     }

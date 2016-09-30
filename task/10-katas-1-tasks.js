@@ -17,10 +17,32 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
     var sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    var result = [];
+    for (let i = 1; i <= sides.length; i++) {
+        var v1 = sides[i-1], v2, vv;
+        i === 4 ? v2 = sides[0] : v2 = sides[i];
+        i % 2 === 0 ? vv = v2 + v1 : vv = v1 + v2;
+        var abbreviation = [{abbreviation: v1},
+                            {abbreviation: v1+'b'+v2},
+                            {abbreviation: v1+vv},
+                            {abbreviation: vv+'b'+v1},
+                            {abbreviation: vv},
+                            {abbreviation: vv+'b'+v2},
+                            {abbreviation: v2+vv},
+                            {abbreviation: v2+'b'+v1}]
+        result = result.concat(abbreviation);
+    }
+    (function() {
+        var azimuth = 0.00;
+        for (var n = 0; n < result.length; n++) {
+            result[n].azimuth = azimuth;
+            azimuth += 11.25;
+        }
+    })(result);
+    return result;
 }
-
+//console.log(createCompassPoints());
 
 /**
  * Expand the braces of the specified string.
@@ -56,7 +78,21 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    var strArr = [str],
+        result = [];
+
+    while (strArr.length > 0) {
+        let newStr = strArr.shift(),
+            match = newStr.match(/\{([^{}]+)\}/);
+
+        if (match) {
+            for (let value of match[1].split(','))
+                strArr.push(newStr.replace(match[0], value));
+        } else if (result.indexOf(newStr) < 0) {
+            result.push(newStr);
+            yield newStr;
+        }
+    }
 }
 
 
@@ -88,8 +124,72 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    var matrix = Array.from({length: n}, x => Array.from({length: n}, y => 0));
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            if ((i + j) < n) {
+                matrix[i][j] = 0.5 * (i + j + 1) * (i + j + 2) + ((i + j) % 2 == 0 ? -i : -j) - 1;
+            } else {
+                let p = n - i - 1;
+                let q = n - j - 1;
+                matrix[i][j] = n * n + 1 - (0.5 * (p + q + 1) * (p + q + 2) + ((p + q) % 2 == 0 ? -p : -q)) - 1;
+            }
+        }
+    }
+    return matrix;
 }
+
+    /*var matrix = Array.from({length: n}, x => Array.from([]));
+    var curr = (n-1)*2+1; // количество диагональных линий матрицы
+    var i = 0;
+    var first = 0;
+    var last = 0;
+    function fn(fs, lt, k) {
+        if(k % 2 === 0) {
+                for (var a = fs; a <= lt; a++) {
+                    matrix[a].push(i);
+                    i += 1;
+                }
+                if (k <= n){
+                    first = lt + 1;
+                    last = fs;
+                } else {
+                    last = fs + 1;
+                    first = lt;
+                }
+            } else {
+                for (var b = fs; b >= lt; b--) {
+                    matrix[b].push(i);
+                    i += 1;
+                }
+                if (k <= n) {
+                    last = fs + 1;
+                    first = lt;
+                } else {
+                    first = lt + 1;
+                    last = fs;
+                }
+            }
+    }
+    // заполняем матрицу сверху от главной диагонали и по главной диагонали
+    for (let k = 1; k <= n; k++) {
+        fn(first, last, k);
+    }
+    // заполняем матрицу снизу от главной диагонали
+    if (Math.ceil(curr/2) % 2 === 0) {
+        first = n-1;
+        last = 1;
+    } else {
+        first = 1;
+        last = n-1;
+    }
+    for (let k = n+1; k <= curr; k++) {
+            fn(first, last, k);
+    }
+    return matrix;
+}*/
+
+//console.log(getZigZagMatrix(5));
 
 
 /**
@@ -113,9 +213,22 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
-}
+    var arrayOfNum = dominoes.reduce((prev, curr) => {
+       return prev.concat(curr);
+    }).sort();
 
+    for (let i = arrayOfNum.length-1; i >= 0; i--) {
+        if (arrayOfNum[i] === arrayOfNum[i-1]) arrayOfNum.splice(i-1, 2);
+    }
+
+    var len = dominoes.map((v, i) => {
+        var bool = arrayOfNum[0] === v[0] || arrayOfNum[1] === v[0];
+        if (v[0] === v[1] && !bool) return v[0];
+    }).join('').length
+
+    return arrayOfNum.length <= 2 && len === 0;
+}
+//console.log(canDominoesMakeRow([[0,1],  [1,1]]));
 
 /**
  * Returns the string expression of the specified ordered list of integers.
@@ -137,8 +250,15 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    var str = nums.map((v, i) => {
+        return nums[i-1] === v-1 && nums[i+1] === v+1 ? '-' : v;
+    }).join();
+    while (/(,*-,*-,*)|(,-,)/g.test(str)) {
+        str = str.replace(/(,*-,*-,*)|(,-,)/g, '-');
+    }
+    return str;
 }
+//console.log(extractRanges([ 0, 1, 2, 3, 4, 5 ]))
 
 module.exports = {
     createCompassPoints : createCompassPoints,
